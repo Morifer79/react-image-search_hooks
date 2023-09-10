@@ -31,8 +31,8 @@ export const App = () => {
         const data = await Request.fetchGallery(searchValues, page);
 
         if (data.hits.length === 0) {
-					toast.error('No pictures - no problem');
-					return;
+          toast.error('No pictures - no problem');
+          return;
         }
 
         const normalImages = Request.destImages(data.hits);
@@ -72,7 +72,9 @@ export const App = () => {
     <Container>
       <Searchbar onSubmit={changeValue} />
       {isLoading && <Loader />}
-      {isError && !isLoading && toast.error('You`ve entered the stratosphere...')}
+      {isError &&
+        !isLoading &&
+        toast.error('You`ve entered the stratosphere...')}
       {images.length > 0 && (
         <ImageGallery images={images} openModal={openModal} />
       )}

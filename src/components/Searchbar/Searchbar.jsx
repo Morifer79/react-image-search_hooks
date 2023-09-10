@@ -7,7 +7,7 @@ import {
   SearchFormInput,
 } from './Searchbar.styled';
 
-export const Searchbar = ({onSubmit} )=> {
+export const Searchbar = ({ onSubmit }) => {
   const [inputValue, setinputValue] = useState('');
 
   const handleChange = e => {
@@ -15,8 +15,8 @@ export const Searchbar = ({onSubmit} )=> {
   };
 
   const handleSubmit = e => {
-		e.preventDefault();
-		const searchItem = e.target.elements.searchValue.value.trim();
+    e.preventDefault();
+    const searchItem = e.target.elements.searchValue.value.trim();
     if (!searchItem) {
       toast.error('Hooray! You found a void...');
     }
