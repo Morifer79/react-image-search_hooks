@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import * as Request from 'services/api';
 import { toast } from 'react-toastify';
 import { Container } from './App.styled';
@@ -9,99 +9,82 @@ import { Button } from './Button/Button';
 import { ModalStyled } from './Modal/Modal';
 import { ScrollToTop } from './ScrollToTop/ScrollToTop';
 
-export class App extends React.Component {
-  state = {
-    searchValues: '',
-    imageSrc: '',
-    images: [],
-    page: 1,
-    totalPages: 0,
-    isError: false,
-    isLoading: false,
-    isModal: false,
-  };
+export const App = () => {
+  const [searchValues, setSearchValues] = useState('');
+  const [imageSrc, setImageSrc] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModal, setIsModal] = useState(false);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { searchValues, page } = this.state;
-    if (prevState.searchValues !== searchValues || prevState.page !== page) {
-      this.addImages();
+  useEffect(() => {
+    if (searchValues === '') {
+      return;
     }
-  }
 
-  changeValue = query => {
-    this.setState({
-      searchValues: query,
-      images: [],
-      page: 1,
-    });
-  };
+    async function addImages() {
+      try {
+        setIsLoading(true);
+        setIsError(false);
+        const data = await Request.fetchGallery(searchValues, page);
 
-  loadMoreImages = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
+        if (data.hits.length === 0) {
+					toast.error('No pictures - no problem');
+					return;
+        }
 
-  openModal = image => {
-    this.setState({ imageSrc: image, isModal: true });
-  };
-
-  closeModal = () => {
-    this.setState({
-      isModal: false,
-      imageSrc: '',
-    });
-  };
-
-  addImages = async () => {
-    const { searchValues, page } = this.state;
-    try {
-      this.setState({ isLoading: true, isError: false });
-      const data = await Request.fetchGallery(searchValues, page);
-
-      if (data.hits.length === 0) {
-        toast.error('No pictures - no problem');
+        const normalImages = Request.destImages(data.hits);
+        setImages(propImages => [...propImages, ...normalImages]);
+        setTotalPages(Math.ceil(data.totalHits / 12));
+      } catch (error) {
+        setIsError(true);
+        toast.error('Houston, we have a problem!');
+      } finally {
+        setIsLoading(false);
       }
-
-      const normalImages = Request.destImages(data.hits);
-      this.setState(state => ({
-        images: [...state.images, ...normalImages],
-        isLoading: false,
-        isError: '',
-        totalPages: Math.ceil(data.totalHits / 12),
-      }));
-    } catch (error) {
-      this.setState({ isError: true });
-      toast.error('Houston, we have a problem!');
-    } finally {
-      this.setState({ isLoading: false });
     }
+    addImages();
+  }, [searchValues, page]);
+
+  const changeValue = query => {
+    setSearchValues(query);
+    setImages([]);
+    setPage(1);
   };
 
-  render() {
-    const { images, isLoading, page, totalPages, imageSrc, isModal, isError } =
-      this.state;
-    return (
-      <Container>
-        <Searchbar onSubmit={this.changeValue} />
-        {isLoading && <Loader />}
-        {isError &&
-          !isLoading &&
-          toast.error('You`ve entered the stratosphere...')}
-        {images.length > 0 && (
-          <ImageGallery images={images} openModal={this.openModal} />
-        )}
-        {images.length > 0 && totalPages !== page && !isLoading && (
-          <Button onClick={this.loadMoreImages} />
-        )}
-        {/*{(totalPages === page) > 0 && toast.error('You have reached Mars!')}*/}
-        {images.length > 0 && !isLoading && <ScrollToTop />}
-        <ModalStyled
-          isOpen={isModal}
-          onRequestClose={this.closeModal}
-          image={imageSrc}
-        />
-      </Container>
-    );
-  }
-}
+  const loadMoreImages = () => {
+    setPage(prevPage => prevPage + 1);
+  };
+
+  const openModal = image => {
+    setImageSrc(image);
+    setIsModal(true);
+  };
+
+  const closeModal = () => {
+    setImageSrc('');
+    setIsModal(false);
+  };
+
+  return (
+    <Container>
+      <Searchbar onSubmit={changeValue} />
+      {isLoading && <Loader />}
+      {isError && !isLoading && toast.error('You`ve entered the stratosphere...')}
+      {images.length > 0 && (
+        <ImageGallery images={images} openModal={openModal} />
+      )}
+      {images.length > 0 && totalPages !== page && !isLoading && (
+        <Button onClick={loadMoreImages} />
+      )}
+      {images.length > 0 && !isLoading && <ScrollToTop />}
+      <ModalStyled
+        isOpen={isModal}
+        onRequestClose={closeModal}
+        image={imageSrc}
+      />
+    </Container>
+  );
+};

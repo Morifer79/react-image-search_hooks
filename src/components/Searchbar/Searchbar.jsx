@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 import {
   Header,
@@ -7,41 +7,36 @@ import {
   SearchFormInput,
 } from './Searchbar.styled';
 
-export class Searchbar extends React.Component {
-  state = {
-    searchValue: '',
-    inputValue: '',
+export const Searchbar = ({onSubmit} )=> {
+  const [inputValue, setinputValue] = useState('');
+
+  const handleChange = e => {
+    setinputValue(e.target.value);
   };
 
-  handleChange = e => {
-    this.setState({ inputValue: e.target.value });
-  };
-
-  handleSubmit = e => {
-    e.preventDefault();
-    const searchItem = e.target.elements.searchValue.value.trim();
+  const handleSubmit = e => {
+		e.preventDefault();
+		const searchItem = e.target.elements.searchValue.value.trim();
     if (!searchItem) {
       toast.error('Hooray! You found a void...');
     }
-    this.props.onSubmit(searchItem);
+    onSubmit(searchItem);
     e.target.reset();
   };
 
-  render() {
-    return (
-      <Header>
-        <SearchForm onSubmit={this.handleSubmit} autoComplete="off">
-          <SearchFormInput
-            type="search"
-            onChange={this.handleChange}
-            value={this.state.inputValue}
-            name="searchValue"
-            placeholder="Search images and photos"
-            autoFocus
-          />
-          <SearchFormButton>Search</SearchFormButton>
-        </SearchForm>
-      </Header>
-    );
-  }
-}
+  return (
+    <Header>
+      <SearchForm onSubmit={handleSubmit} autoComplete="off">
+        <SearchFormInput
+          type="search"
+          onChange={handleChange}
+          value={inputValue}
+          name="searchValue"
+          placeholder="Search images and photos"
+          autoFocus
+        />
+        <SearchFormButton>Search</SearchFormButton>
+      </SearchForm>
+    </Header>
+  );
+};
