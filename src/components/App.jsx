@@ -81,7 +81,7 @@ export const App = () => {
       {images.length > 0 && totalPages !== page && !isLoading && (
         <Button onClick={loadMoreImages} />
       )}
-      {images.length > 0 && !isLoading && <ScrollToTop />}
+      {images.length > 36 && !isLoading && <ScrollToTop />}
       <ModalStyled
         isOpen={isModal}
         onRequestClose={closeModal}
